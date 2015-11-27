@@ -14,7 +14,7 @@ exports.getBooks = function (req, res) {
 
 
 exports.refreshBooks = function (req, res) {
-    http.get('http://localhost:8080/books/web/index.php', function (response) {
+    http.get('http://localhost:8080/books/index.php', function (response) {
 
         var body = '';
         response.on('data', function (d) {
@@ -41,13 +41,9 @@ exports.refreshBooks = function (req, res) {
 
                         bookStore.save(function (err) {
                             if (err) {
-                                res.send(err);
                             }
                         });
                     });
-                    res.json({message: 'OK'});
-
-
                 });
 
 

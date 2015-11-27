@@ -19,12 +19,21 @@ exports.addToSubcribers = function (req,res){
 };
 
 exports.unsubcribeFromSubscribers = function (req, res) {
-
     Subscriber.findByIdAndRemove(req.params.subscriber_id, function (err) {
+        console.log('Subscriber succesfully removed from db');
         if (err) {
             res.send(err);
         }
+        res.json(newSubscriber);
+    })
+};
 
-        res.json({message: 'Subscriber successfully removed from db'});
+exports.getSubscribers = function(req,res){
+    Subscriber.find(function(err, newSubscriber){
+        console.log('Fetching subscribres` data success');
+        if(err){
+            res.send(err);
+        }
+        res.json(newSubscriber)
     })
 };

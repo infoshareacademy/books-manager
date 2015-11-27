@@ -35,12 +35,12 @@ mailer.extend(app, {
         pass: 'iSAforever'
     }
 });
-var refreshCron = schedule.scheduleJob('* * * * * 1', function () {
+var refreshCron = schedule.scheduleJob('/20 * * * *', function () {
     bookStoreController.refreshBooks();
 
 });
-var mailerCron = schedule.scheduleJob('* * * * * 1', function () {
-    http.get('http://localhost:8080/books-filter/web/app_dev.php?format=pretty', function (res) {
+var mailerCron = schedule.scheduleJob('/10 * * * * *', function () {
+    http.get('http://localhost:8080/books-filter/app_dev.php?format=pretty', function (res) {
         var body = '';
         res.on('data', function (d) {
             body += d;
@@ -71,26 +71,32 @@ var mailerCron = schedule.scheduleJob('* * * * * 1', function () {
 
                 });
 
-                app.mailer.send('emailTemplate', {
-                    to: 'jaqbec@gmail.com', // REQUIRED. This can be a comma delimited string just like a normal email to field.
-                    subject: 'Test Email',
-                    books: uniqueBooks
-                }, function (err) {
-                    if (err) {
-                        // handle error
-                        console.log(err);
-                        console.log('There was an error sending the email');
-                        return;
-                    } else {
-                        console.log('mail sent');
-                        mongoose.connection.db.dropCollection('books')
-                            .then(function (err, result) {
-                                newBooks.forEach(function (item) {
-                                    booksController.saveBooks(item);
-                                });
-                            });
-                    }
-                });
+
+                addedSubscriber.find(function (err, subscribers) {
+                    subscribers.forEach(function (newSubscriber) {
+                        app.mailer.send('emailTemplate', {
+                            to: newSubscriber.email, // REQUIRED. This can be a comma delimited string just like a normal email to field.
+                            subject: 'newsletter',
+                            books: uniqueBooks,
+                            subscriberId: newSubscriber._id
+                        }, function (err) {
+                            if (err) {
+                                // handle error
+                                console.log(err);
+                                console.log('There was an error sending the email');
+                                return;
+                            } else {
+                                console.log('mail sent');
+                                mongoose.connection.db.dropCollection('books')
+                                    .then(function (err, result) {
+                                        newBooks.forEach(function (item) {
+                                            booksController.saveBooks(item);
+                                        });
+                                    });
+                            }
+                    });
+                })
+            })
             });
 
             ///zapis
@@ -118,7 +124,8 @@ router.route('/favoritebooks/:fav_id')
     .delete(favoritesController.deleteFromFavorite);
 
 router.route('/subscribers')
-    .post(subscriptionController.addToSubcribers);
+    .post(subscriptionController.addToSubcribers)
+    .get(subscriptionController.getSubscribers);
 
 router.route('/subscribers/:subscriber_id')
     .get(subscriptionController.unsubcribeFromSubscribers);
